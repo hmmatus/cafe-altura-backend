@@ -34,6 +34,31 @@ python manage.py createsuperuser
 Pinning: `requirements.txt` uses exact `==` pins. Keep new dependencies pinned, and regenerate
 with `pip freeze > requirements.txt` after installs.
 
+## Architecture Rule (non-negotiable)
+
+This project follows **clean architecture**. Layers are separated so the business logic is
+portable — if Django, DRF, or PostgreSQL is swapped out, `domain/` and `application/` must
+survive unchanged.
+
+```
+interface/  ──┐
+              ├──> application/ ──> domain/
+infrastructure/ ┘
+```
+
+- `domain/` — entities, value objects, domain exceptions. **Zero framework imports.**
+- `application/` — use cases and ABC ports (repositories, gateways). **Zero framework imports.**
+- `infrastructure/` — Django ORM models, repository implementations, external clients.
+- `interface/` — DRF serializers, views, urls. No business logic, no `.objects`.
+- `config/` — settings, urls, and `container.py`, the only place concrete classes are wired.
+
+Before writing backend code, read the skills that define this:
+
+- `.claude/skills/django-project-structure/SKILL.md` — layout and layer boundaries
+- `.claude/skills/django-endpoint-creator/SKILL.md` — ordered recipe for any endpoint
+
+Use the `python-dev` agent for backend implementation work; it enforces these rules.
+
 ## Conventions
 
 - Config through `django-environ`: `env = environ.Env()`, values from `.env`. `.env` must never
